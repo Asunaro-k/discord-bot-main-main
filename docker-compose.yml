@@ -10,5 +10,7 @@ services:
     # command: /bin/bash
     env_file:
       - .env
+    environment:
+      - TZ=Asia/Tokyo
     restart: unless-stopped
     tty: true
