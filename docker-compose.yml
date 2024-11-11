@@ -1,0 +1,14 @@
+services:
+  discord-bot:
+    build: .
+    container_name: discord-bot
+    volumes:
+      - ./app:/app
+      - ./bot-prompts-private:/prompts
+    working_dir: /app
+    # command: python bot.py
+    # command: /bin/bash
+    env_file:
+      - .env
+    restart: unless-stopped
+    tty: true
