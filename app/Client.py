@@ -13,7 +13,7 @@ import requests
 from bs4 import BeautifulSoup
 import re
 from typing import List
-from datetime import datetime, timedelta
+from datetime import datetime,timedelta
 from langchain.memory import ConversationBufferMemory
 import os
 from langchain_community.utilities import DuckDuckGoSearchAPIWrapper
@@ -86,8 +86,6 @@ class LangchainBot(discord.Client):
 
     async def on_ready(self):
         print(f'Logged on as {self.user}!')
-        # 例: 毎日9:00にメッセージを送信
-        #self.scheduler.add_job(self.send_scheduled_message, 'cron', hour=9, minute=0)
     
     async def generate_chat_prompt(self, message, history_limit:int=10) -> list[BaseMessage]:
         messages: list[BaseMessage] = []
@@ -123,18 +121,19 @@ class LangchainBot(discord.Client):
 
         return response
     
-    async def schedule_message(self, channel_id: int, time: str, message_content: str):
+    
+    async def schedule_message(self, channel_id: int, time: str, message_content: str,message):
         # 入力された時間をパースして日時オブジェクトに変換
         try:
-            scheduled_time = datetime.datetime.strptime(time, "%H:%M")
-            now = datetime.datetime.now()
+            scheduled_time = datetime.strptime(time, "%H:%M")
+            now = datetime.now()
             # 今日の予定時刻にするために日付を修正
             scheduled_time = scheduled_time.replace(year=now.year, month=now.month, day=now.day)
             if scheduled_time < now:
                 # すでに過ぎた時間の場合、翌日に設定
-                scheduled_time += datetime.timedelta(days=1)
+                scheduled_time += timedelta(days=1)
         except ValueError:
-            print("時間の形式が正しくありません。'HH:MM'形式で指定してください。")
+            await message.channel.send("時間の形式が正しくありません。'HH:MM'形式で指定してください。")
             return
 
         # 指定された時間にメッセージを送信
@@ -142,24 +141,22 @@ class LangchainBot(discord.Client):
             self.send_scheduled_message,
             'date',
             run_date=scheduled_time,
-            args=[channel_id, message_content]
+            args=[channel_id, message_content,message]
         )
-        print(f"メッセージがスケジュールされました: {time} にチャンネル {channel_id} で送信予定")
+        await message.channel.send(f"メッセージがスケジュールされました: {scheduled_time} にチャンネル {channel_id} で送信予定")
     
-    async def send_scheduled_message(self, channel_id: int, message_content: str):
+    async def send_scheduled_message(self, channel_id: int, message_content: str,message):
+        await message.channel.send(f"メッセージがスケジュールされましたaaaa")
         # 指定チャンネルにメッセージを送信
         channel = self.get_channel(channel_id)
         if channel:
             await channel.send(message_content)
         else:
-            print(f"チャンネルID {channel_id} が見つかりませんでした")
+            await message.channel.send(f"チャンネルID {channel_id} が見つかりませんでした")
     
     async def generate_web(self, message, prompt, history_limit=10) -> str:
         messages = await self.generate_chat_prompt(message, history_limit)
         messages.append(HumanMessage(content=prompt))
-        messages.append(
-                SystemMessage(content=f'今話題のものや動画にできそうな事をもとに動画の台本とタイトルを生成してください'))
-        # Chat modelに会話の続きを生成させる
         response = await self.llm.ainvoke(messages)
         response = LangTools.sanitize_breakrow(response.content)
         return response
@@ -189,29 +186,21 @@ class LangchainBot(discord.Client):
             urls = self.extract_urls(prompt)
             if urls:
                     webpage_content = await self.get_webpage_content(urls[0])
-                    prompt_with_content = f"以下のWebページの内容に基づいて適切な返答を考えてください。広告や関連記事などに気を取られないでください。\n\nWebページ内容: {webpage_content}\n\n質問: {prompt}"
-                    #promptreply = await self.llm.ainvoke(prompt_with_content)
-                    #reply1 = await self.generate_web(message,promptreply)
+                    prompt_with_content = f"以下のWebページの内容に基づいて今話題のものや動画にできそうな事をもとに動画の台本とタイトルを生成してください。広告や関連記事などに気を取られないでください。\n\nWebページ内容: {webpage_content}\n\n質問: {prompt}"
                     reply1 = await self.generate_web(message,prompt_with_content)
                     reply = f"**URLを要約中...**\n\n{reply1}"
         elif needs_search:
             search_query = re.search(r'SEARCH_QUERY: (.*)', content)
-            #print(search_query)
             if search_query:
                 search_results = self.search.run(search_query.group(1))
                 prompt_with_search = f"""以下の検索結果の内容に基づいて適切な返答を考えてください。広告や関連記事などに気を取られないでください。
-                できるだけ最新の情報を含めて回答してください。
+                できるだけ最新の情報を含めて回答してください。今話題のものや動画にできそうな事をもとに動画の台本とタイトルを生成してください。
 
                 検索結果: {search_results}
 
                 質問: {prompt}
                 """
-                # promptreply = await self.llm.ainvoke(prompt_with_search)
-                # reply1 = await self.generate_web(message,promptreply)
-                #print(prompt_with_search)
                 reply1 = await self.generate_web(message,prompt_with_search)
-                #print("11111111")
-                #print(reply1)
                 reply = f"**Webを検索中...**\n\n{reply1}"
         else:
             command_content = message.content.replace(f'<@{self.user.id}>', '').strip()
@@ -222,10 +211,17 @@ class LangchainBot(discord.Client):
                     channel_id = int(match.group(1))
                     time = match.group(2)
                     message_content = match.group(3)
-                    await self.schedule_message(channel_id, time, message_content)
-                    await message.channel.send(f"{time} にチャンネル {channel_id} でメッセージをスケジュールしました")
+                    await self.schedule_message(channel_id, time, message_content,message)
+                    reply = f"{time} にチャンネル {channel_id} でメッセージをスケジュールしました"
                 else:
-                    await message.channel.send("形式が正しくありません。`!schedule #チャンネル 時間 メッセージ` の形式で入力してください。")
+                    reply = "形式が正しくありません。`!schedule #チャンネル 時間 メッセージ` の形式で入力してください。"
+            elif prompt.startswith("!time"):
+                now = datetime.now()
+                current_time = now.strftime("%H:%M")
+                jobs = self.scheduler.get_jobs()
+                for job in jobs:
+                    reply = f"Job ID: {job.id}, Next Run Time: {job.next_run_time}"
+                #reply = f"現在の時刻は {current_time} です。"
             else:
                 sentence = await self.generate_reply(message, history_limit=10)
                 reply = f"{sentence}"
