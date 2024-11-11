@@ -42,10 +42,10 @@ if __name__ == '__main__':
     #     temperature=0.7,
     # )
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7)
-    hobojuki = Client.HoboJuki(
+    langchainbot = Client.LangchainBot(
         llm=llm,
         intents=intents,
         system_prompt=system_prompt,
         system_prompt_getter=lambda : get_system_prompt(system_prompt_path),
     )
-    hobojuki.run(os.environ['DISCORD_API_KEY'])
+    langchainbot.run(os.environ['DISCORD_API_KEY'])

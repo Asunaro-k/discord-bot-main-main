@@ -16,6 +16,13 @@ RUN python3 -m pip install wikipedia
 RUN python3 -m pip install langgraph langsmith
 RUN python3 -m pip install langchain-groq
 RUN python3 -m pip install langchain-openai
+RUN python3 -m pip install Pillow
+RUN python3 -m pip install aiohttp
+RUN python3 -m pip install langchain_google_community
+RUN python3 -m pip install langchain
+RUN python3 -m pip install langchain-community
+RUN python3 -m pip install -U duckduckgo-search
+RUN python3 -m pip install apscheduler
 
 # Install the dependencies
 # RUN pip install --no-cache-dir -r requirements.txt
