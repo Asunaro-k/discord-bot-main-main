@@ -18,6 +18,7 @@ from langchain.memory import ConversationBufferMemory
 import os
 from langchain_community.utilities import DuckDuckGoSearchAPIWrapper
 
+
 class LangchainBot(discord.Client):
     def __init__(self, llm:BaseChatModel, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -141,14 +142,14 @@ class LangchainBot(discord.Client):
             self.send_scheduled_message,
             'date',
             run_date=scheduled_time,
-            args=[message_content,message]
+            args=[message_content,message.channel]
         )
-        await message.channel.send(f"メッセージがスケジュールされました: {scheduled_time} に送信予定")
+        print(f"メッセージがスケジュールされました: {message.channel} に送信予定")
     
-    async def send_scheduled_message(self,message_content: str,message):
-        await message.channel.send(f"メッセージがスケジュールされましたaaaa")
+    async def send_scheduled_message(self,message_content: str,channel):
+        print(f"メッセージがスケジュールされましたaaaa")
         # 指定チャンネルにメッセージを送信
-        await message.channel.send(message_content)
+        await channel.send(message_content)
 
     
     async def generate_web(self, message, prompt, history_limit=10) -> str:
@@ -217,7 +218,7 @@ class LangchainBot(discord.Client):
                 # jobs = self.scheduler.get_jobs()
                 # for job in jobs:
                 #     reply = f"Job ID: {job.id}, Next Run Time: {job.next_run_time}"
-                #reply = f"現在の時刻は {current_time} です。"
+                reply = f"現在の時刻は {current_time} です。"
             else:
                 sentence = await self.generate_reply(message, history_limit=10)
                 reply = f"{sentence}"
