@@ -26,6 +26,9 @@ RUN python3 -m pip install apscheduler
 
 # Install the dependencies
 # RUN pip install --no-cache-dir -r requirements.txt
+# タイムゾーンを設定
+RUN ln -snf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && echo "Asia/Tokyo" > /etc/timezone
+
 
 # Command to run the bot
 CMD ["python", "bot.py"]
