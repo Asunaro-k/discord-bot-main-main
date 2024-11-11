@@ -122,7 +122,7 @@ class LangchainBot(discord.Client):
         return response
     
     
-    async def schedule_message(self, channel_id: int, time: str, message_content: str,message):
+    async def schedule_message(self, time: str, message_content: str,message):
         # 入力された時間をパースして日時オブジェクトに変換
         try:
             scheduled_time = datetime.strptime(time, "%H:%M")
@@ -141,18 +141,15 @@ class LangchainBot(discord.Client):
             self.send_scheduled_message,
             'date',
             run_date=scheduled_time,
-            args=[channel_id, message_content,message]
+            args=[message_content,message]
         )
-        await message.channel.send(f"メッセージがスケジュールされました: {scheduled_time} にチャンネル {channel_id} で送信予定")
+        await message.channel.send(f"メッセージがスケジュールされました: {scheduled_time} に送信予定")
     
-    async def send_scheduled_message(self, channel_id: int, message_content: str,message):
+    async def send_scheduled_message(self,message_content: str,message):
         await message.channel.send(f"メッセージがスケジュールされましたaaaa")
         # 指定チャンネルにメッセージを送信
-        channel = self.get_channel(channel_id)
-        if channel:
-            await channel.send(message_content)
-        else:
-            await message.channel.send(f"チャンネルID {channel_id} が見つかりませんでした")
+        await message.channel.send(message_content)
+
     
     async def generate_web(self, message, prompt, history_limit=10) -> str:
         messages = await self.generate_chat_prompt(message, history_limit)
@@ -206,21 +203,20 @@ class LangchainBot(discord.Client):
             command_content = message.content.replace(f'<@{self.user.id}>', '').strip()
             if command_content.startswith("!schedule"):
                 new_content = command_content[len('!schedule '):].strip()
-                match = re.match(r"<#(\d+)> (\d{2}:\d{2}) (.+)", new_content)
+                match = re.match(r"(\d{2}:\d{2}) (.+)", new_content)
                 if match:
-                    channel_id = int(match.group(1))
-                    time = match.group(2)
-                    message_content = match.group(3)
-                    await self.schedule_message(channel_id, time, message_content,message)
-                    reply = f"{time} にチャンネル {channel_id} でメッセージをスケジュールしました"
+                    time = match.group(1)
+                    message_content = match.group(2)
+                    await self.schedule_message(time, message_content,message)
+                    reply = f"{time} にメッセージをスケジュールしました"
                 else:
-                    reply = "形式が正しくありません。`!schedule #チャンネル 時間 メッセージ` の形式で入力してください。"
+                    reply = "形式が正しくありません。`!schedule 時間 メッセージ` の形式で入力してください。"
             elif prompt.startswith("!time"):
                 now = datetime.now()
                 current_time = now.strftime("%H:%M")
-                jobs = self.scheduler.get_jobs()
-                for job in jobs:
-                    reply = f"Job ID: {job.id}, Next Run Time: {job.next_run_time}"
+                # jobs = self.scheduler.get_jobs()
+                # for job in jobs:
+                #     reply = f"Job ID: {job.id}, Next Run Time: {job.next_run_time}"
                 #reply = f"現在の時刻は {current_time} です。"
             else:
                 sentence = await self.generate_reply(message, history_limit=10)
