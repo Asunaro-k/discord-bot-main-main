@@ -172,6 +172,11 @@ class LangchainBot(discord.Client):
         # 特定のユーザーがメンションされているか確認
         if self.user not in mentioned_users:
             return
+        # メンションを除去してプロンプトを取得
+        prompt = message.content
+        for mention in message.mentions:
+            prompt = prompt.replace(f'<@{mention.id}>', '').replace(f'<@!{mention.id}>', '')
+        prompt = prompt.strip()
         # 質問の分析
         analysis = await self.query_chain.ainvoke(prompt)
         # AIMessageからcontentを取得
@@ -210,18 +215,18 @@ class LangchainBot(discord.Client):
                 reply = f"**Webを検索中...**\n\n{reply1}"
         else:
             command_content = message.content.replace(f'<@{self.user.id}>', '').strip()
-			if command_content.startswith("!schedule"):
-				new_content = command_content[len('!schedule '):].strip()
-				match = re.match(r"<#(\d+)> (\d{2}:\d{2}) (.+)", new_content)
-				if match:
-					channel_id = int(match.group(1))
-					time = match.group(2)
-					message_content = match.group(3)
-					await self.schedule_message(channel_id, time, message_content)
-					await message.channel.send(f"{time} にチャンネル {channel_id} でメッセージをスケジュールしました")
-				else:
-					await message.channel.send("形式が正しくありません。`!schedule #チャンネル 時間 メッセージ` の形式で入力してください。")
-			else:
-				sentence = await self.generate_reply(message, history_limit=10)
-				reply = f"{sentence}"
+            if command_content.startswith("!schedule"):
+                new_content = command_content[len('!schedule '):].strip()
+                match = re.match(r"<#(\d+)> (\d{2}:\d{2}) (.+)", new_content)
+                if match:
+                    channel_id = int(match.group(1))
+                    time = match.group(2)
+                    message_content = match.group(3)
+                    await self.schedule_message(channel_id, time, message_content)
+                    await message.channel.send(f"{time} にチャンネル {channel_id} でメッセージをスケジュールしました")
+                else:
+                    await message.channel.send("形式が正しくありません。`!schedule #チャンネル 時間 メッセージ` の形式で入力してください。")
+            else:
+                sentence = await self.generate_reply(message, history_limit=10)
+                reply = f"{sentence}"
         await message.reply(reply)
