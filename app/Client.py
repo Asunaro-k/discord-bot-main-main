@@ -55,7 +55,7 @@ class LangchainBot(discord.Client):
             以下の形式で応答してください：
             NEEDS_SEARCH: [true/false] - 最新の情報が必要な場合はtrue
             HAS_URL: [true/false] - URLが含まれている場合はtrue
-            SEARCH_QUERY: [検索クエリ] - NEEDS_SEARCHがtrueの場合のみ必要な検索クエリを書いてください
+            SEARCH_QUERY: [検索クエリ] - 必要な検索クエリを書いてください
             """,
             input_variables=["question"]
         )
