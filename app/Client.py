@@ -2,6 +2,9 @@ import discord
 import LangTools
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, BaseMessage
 from langchain_core.language_models import BaseChatModel
+#from apscheduler.schedulers.asyncio import AsyncIOScheduler
+#from apscheduler.schedulers.background import BackgroundScheduler
+#from apscheduler.schedulers.blocking import BlockingScheduler
 from discord.ext import tasks
 from langchain.prompts import PromptTemplate
 from langchain.chains import ConversationChain, LLMChain
@@ -138,7 +141,7 @@ class LangchainBot(discord.Client):
                 "content": message_content,
                 "message": message
             })
-            await message.channel.send(f"{time} にメッセージをスケジュールしました")        
+            #await message.channel.send(f"{time} にメッセージをスケジュールしました")        
         except ValueError:
             await message.channel.send("時間の形式が正しくありません。'HH:MM'形式で指定してください。")
 
@@ -160,7 +163,6 @@ class LangchainBot(discord.Client):
         analysis = await self.query_chain.ainvoke(message_content)
         # AIMessageからcontentを取得
         content = analysis.content if hasattr(analysis, 'content') else str(analysis)
-        needs_search = "NEEDS_SEARCH: true" in content
         # urlを含むか確認
         has_url = "HAS_URL: true" in content
         if has_url:
@@ -170,7 +172,7 @@ class LangchainBot(discord.Client):
                     prompt_with_content = f"以下のWebページの内容に基づいて今話題のものや動画にできそうな事をもとに動画の台本とタイトルを生成してください。広告や関連記事などに気を取られないでください。\n\nWebページ内容: {webpage_content}\n\n質問: {message_content}"
                     reply1 = await self.generate_web(message,prompt_with_content)
                     reply = f"**URLを要約中...**\n\n{reply1}"
-        elif needs_search:
+        else :
             search_query = re.search(r'SEARCH_QUERY: (.*)', content)
             if search_query:
                 search_results = self.search.run(search_query.group(1))
