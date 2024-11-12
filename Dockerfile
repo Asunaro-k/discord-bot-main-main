@@ -22,7 +22,6 @@ RUN python3 -m pip install langchain_google_community
 RUN python3 -m pip install langchain
 RUN python3 -m pip install langchain-community
 RUN python3 -m pip install -U duckduckgo-search
-RUN python3 -m pip install apscheduler
 
 # Install the dependencies
 # RUN pip install --no-cache-dir -r requirements.txt
