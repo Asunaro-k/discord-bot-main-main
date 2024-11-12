@@ -53,9 +53,6 @@ class LangchainBot(discord.Client):
             NEEDS_SEARCH: [true/false] - 最新の情報が必要な場合はtrue
             HAS_URL: [true/false] - URLが含まれている場合はtrue
             SEARCH_QUERY: [検索クエリ] - NEEDS_SEARCHがtrueの場合のみ必要な検索クエリを書いてください
-            NEEDS_GENERATEIMG: [true/false] - 画像生成が必要な場合はtrue
-            IMAGE_QUERY: [画像生成クエリ] - NEEDS_GENERATEIMGがtrueの場合のみ必要な画像生成プロンプトを書いてください。日本語の場合は英語にして書いてください。
-            IMAGE_QUERY_mini: [画像生成クエリ] - NEEDS_GENERATEIMGがtrueの場合のみ画像の特定のビジュアル要素に焦点を当てた短縮させた画像生成クエリを書いてください。日本語の場合は英語にして書いてください。
             """,
             input_variables=["question"]
         )
@@ -179,7 +176,6 @@ class LangchainBot(discord.Client):
         needs_search = "NEEDS_SEARCH: true" in content
         # urlを含むか確認
         has_url = "HAS_URL: true" in content
-        needs_generateimg = "NEEDS_GENERATEIMG: true" in content
         if has_url:
             urls = self.extract_urls(prompt)
             if urls:
@@ -215,10 +211,10 @@ class LangchainBot(discord.Client):
             elif prompt.startswith("!time"):
                 now = datetime.now()
                 current_time = now.strftime("%H:%M")
-                # jobs = self.scheduler.get_jobs()
-                # for job in jobs:
-                #     reply = f"Job ID: {job.id}, Next Run Time: {job.next_run_time}"
-                reply = f"現在の時刻は {current_time} です。"
+                jobs = self.scheduler.get_jobs()
+                for job in jobs:
+                    reply = f"現在の時刻は {current_time} です。Job ID: {job.id}, Next Run Time: {job.next_run_time}"
+                # reply = f"現在の時刻は {current_time} です。"
             else:
                 sentence = await self.generate_reply(message, history_limit=10)
                 reply = f"{sentence}"
