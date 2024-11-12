@@ -167,7 +167,7 @@ class LangchainBot(discord.Client):
             urls = self.extract_urls(message_content)
             if urls:
                     webpage_content = await self.get_webpage_content(urls[0])
-                    prompt_with_content = f"以下のWebページの内容に基づいて今話題のものや動画にできそうな事をもとに動画の台本とタイトルを生成してください。広告や関連記事などに気を取られないでください。\n\nWebページ内容: {webpage_content}\n\n質問: {prompt}"
+                    prompt_with_content = f"以下のWebページの内容に基づいて今話題のものや動画にできそうな事をもとに動画の台本とタイトルを生成してください。広告や関連記事などに気を取られないでください。\n\nWebページ内容: {webpage_content}\n\n質問: {message_content}"
                     reply1 = await self.generate_web(message_content,prompt_with_content)
                     reply = f"**URLを要約中...**\n\n{reply1}"
         elif needs_search:
